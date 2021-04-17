@@ -3,6 +3,7 @@ const fs = require('fs')
 const swaggerTags = require('./src/swagger-tags')
 const handleFiles = require('./src/handle-files')
 const statics = require('./src/statics')
+const parseYml = require('yaml')
 
 const { platform } = process
 const symbols = platform === 'win32' ? { success: '', failed: '' } : { success: '✔', failed: '✖' }
@@ -34,13 +35,14 @@ module.exports = function (args) {
                     }
                 }
 
-                const objDoc = { ...statics.TEMPLATE, ...data, paths: {} }
-                if (!objDoc.info.version)
-                    objDoc.info.version = statics.TEMPLATE.info.version
-                if (!objDoc.info.title)
-                    objDoc.info.title = statics.TEMPLATE.info.title
-                if (!objDoc.info.description)
-                    objDoc.info.description = statics.TEMPLATE.info.description
+                const objDoc = { ...data, paths: {} }
+                // const objDoc = { ...statics.TEMPLATE, ...data, paths: {} }
+                // if (!objDoc.info.version)
+                //     objDoc.info.version = statics.TEMPLATE.info.version
+                // if (!objDoc.info.title)
+                //     objDoc.info.title = statics.TEMPLATE.info.title
+                // if (!objDoc.info.description)
+                //     objDoc.info.description = statics.TEMPLATE.info.description
 
                 for (let file = 0; file < endpointsFiles.length; file++) {
                     const filePath = endpointsFiles[file]
@@ -70,15 +72,15 @@ module.exports = function (args) {
                 let constainXML = false
                 if (JSON.stringify(objDoc).includes('application/xml'))     // TODO: improve this
                     constainXML = true
-                swaggerTags.setDefinitions(objDoc.definitions)
-                Object.keys(objDoc.definitions).forEach(definition => {
-                    if (constainXML)
-                        objDoc.definitions[definition] = { ...swaggerTags.formatDefinitions(objDoc.definitions[definition], {}, constainXML), xml: { name: definition } }
-                    else
-                        objDoc.definitions[definition] = { ...swaggerTags.formatDefinitions(objDoc.definitions[definition], {}, constainXML) }
-                })
-                let dataJSON = JSON.stringify(objDoc, null, 2)
-                fs.writeFileSync(outputFile, dataJSON)
+                // swaggerTags.setDefinitions(objDoc.definitions)
+                // Object.keys(objDoc.definitions).forEach(definition => {
+                //     if (constainXML)
+                //         objDoc.definitions[definition] = { ...swaggerTags.formatDefinitions(objDoc.definitions[definition], {}, constainXML), xml: { name: definition } }
+                //     else
+                //         objDoc.definitions[definition] = { ...swaggerTags.formatDefinitions(objDoc.definitions[definition], {}, constainXML) }
+                // })
+                const dataYml = parseYml.stringify(objDoc.paths, null, 4)
+                fs.writeFileSync(outputFile, dataYml)
                 if (!options.disableLogs)
                     console.log('Swagger-autogen:', "\x1b[32m", 'Success ' + symbols.success, "\x1b[0m")
                 return resolve({ success: true, data: objDoc })
